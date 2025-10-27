@@ -30,17 +30,17 @@ def main():
     CSV_FILE = "crypto_prices_3min_ccxt.csv"  # The file saved by the previous script
     INITIAL_CAPITAL = 10_000
     TRADING_FEE_RATE = 0.001  # 0.1% (common fee on Binance)
-    MAX_BUY_PERC_POWER = 0.5  # Max 10% of available *buying power* on a single buy
-    NUM_SIMULATIONS = 100_000  # Number of backtests to run
+    MAX_BUY_PERC_POWER = 0.5  # Max 10% of available *buying power* on a single 100
+    NUM_SIMULATIONS = 10_000  # Number of backtests to run
 
     # --- New Strategy Parameters ---
-    LEVERAGE = 15.0  # e.g., 3x leverage
+    LEVERAGE = 20.0  # e.g., 3x leverage
     AVOID_SELLING_WINNERS = True  # If True, will not sell positions that are in profit
 
     # --- Strategy Probabilities (must sum to 1.0) ---
-    PROB_HOLD = 0.7  # 85% chance to hold
-    PROB_BUY = 0.15  # 7.5% chance to buy
-    PROB_SELL = 0.15  # 7.5% chance to sell
+    PROB_HOLD = 0.8  # 85% chance to hold
+    PROB_BUY = 0.10  # 7.5% chance to buy
+    PROB_SELL = 0.10  # 7.5% chance to sell
     # --- End Parameters ---
 
     CURRENT_PNLS = {"deepseek": 11_000, "qwen": 7_000, "claude": 1_500, "grok": 500}
@@ -100,7 +100,7 @@ def main():
     # 3. Plot Results
     print("Generating plots...")
 
-    # plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=100)
+    # plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=1000)
     # plot_pnl_distribution(all_final_pnls, INITIAL_CAPITAL)
 
     for model, pnl in CURRENT_PNLS.items():

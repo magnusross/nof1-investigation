@@ -49,6 +49,11 @@ def run_simulation_jit(
                 portfolio_value_history[t] = initial_capital
             continue
 
+        if mtm_value < 0:
+            portfolio_value_history[t + 1 :] = mtm_value
+
+            return portfolio_value_history, -initial_capital
+
         available_to_deploy = max_exposure - current_position_value
 
         for i in range(num_coins):

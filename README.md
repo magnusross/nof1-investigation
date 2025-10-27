@@ -10,6 +10,11 @@ The strategy is as follows:
 You need to focus on making the simulation fast and efficient. You should run multiple random simulations and plot the results. The plot should be of the mark to market value of the portfolio over time, including fees. I would also like a plot of the disribution of the final PnL. Make it easy to control the parameters of the strategy.
 
 
+TODO:
+- [x] Incorporate margin call. 
+- [ ] 
+
+
 INITIAL_CAPITAL = 10_000
 TRADING_FEE_RATE = 0.001  # 0.1% (common fee on Binance)
 MAX_BUY_PERC_CASH = 0.2  # Max 10% of available cash on a single buy
