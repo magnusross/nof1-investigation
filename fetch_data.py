@@ -12,10 +12,17 @@ You can install them using pip:
 pip install pandas ccxt
 """
 
+import os
 import ccxt
 import pandas as pd
 from datetime import datetime
 import time
+import json
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
+import argparse
+
+BASE_DIR = "data"
 
 
 def fetch_all_ohlcv(exchange, pair, timeframe, since, end_timestamp):
@@ -72,7 +79,7 @@ def fetch_all_ohlcv(exchange, pair, timeframe, since, end_timestamp):
     return all_klines
 
 
-def main():
+def fetch_all_symbols():
     """
     Main function to define parameters and run the fetcher.
     """
@@ -137,12 +144,76 @@ def main():
         final_df = pd.concat(all_series, axis=1)
 
         # --- Optional: Save to CSV ---
-        output_filename = "crypto_prices_3min_ccxt.csv"
+        output_filename = f"{BASE_DIR}/crypto_prices_3min_ccxt.csv"
         final_df.to_csv(output_filename)
         print(f"\nData successfully saved to {output_filename}")
     else:
         print("No data was fetched for any symbol.")
 
 
+def fetch_historical_model_pnls_json():
+    url = "https://nof1.ai/api/account-totals"
+    try:
+        req = Request(url, headers={"User-Agent": "python-urllib/3"})
+        with urlopen(req, timeout=15) as resp:
+            raw = resp.read()
+            try:
+                charset = resp.headers.get_content_charset() or "utf-8"
+            except Exception:
+                charset = "utf-8"
+            data = json.loads(raw.decode(charset))
+        return data
+
+    except HTTPError as e:
+        print(f"HTTP error: {e.code} {e.reason}")
+    except URLError as e:
+        print(f"URL error: {e.reason}")
+    except Exception as e:
+        print(f"Failed to fetch/parse JSON: {e}")
+
+    return None
+
+
+def fetch_historical_model_pnls():
+    data = fetch_historical_model_pnls_json()
+
+    pnl_df = data.get("accountTotals", [])
+    pnl_df = pd.DataFrame(pnl_df)
+    pnl_df = pnl_df[["timestamp", "realized_pnl", "model_id", "cum_pnl_pct"]]
+    pnl_df["realized_pnl"] = pnl_df["realized_pnl"].astype(float)
+    pnl_df["cum_pnl_pct"] = pnl_df["cum_pnl_pct"].astype(float)
+    pnl_df["timestamp"] = pd.to_datetime(pnl_df.timestamp.astype(int), unit="s")
+    pnl_df = pnl_df.set_index("timestamp")
+
+    pnl_df.to_csv(f"{BASE_DIR}/historical_pnl_pct.csv")
+
+
 if __name__ == "__main__":
-    main()
+    os.makedirs(BASE_DIR, exist_ok=True)
+
+    parser = argparse.ArgumentParser(
+        description="Fetch historical crypto OHLCV or model P&Ls. If no flags are provided both will be fetched."
+    )
+    parser.add_argument(
+        "--symbols",
+        action="store_true",
+        help="Fetch OHLCV time series for configured symbols (only).",
+    )
+    parser.add_argument(
+        "--model-pnls",
+        action="store_true",
+        help="Fetch historical model P&Ls (only).",
+    )
+
+    args = parser.parse_args()
+
+    # Behavior: if neither flag provided, run both. If one or both flags provided, run the requested actions.
+    if not args.symbols and not args.model_pnls:
+        # Default behavior: preserve previous behavior and run both
+        fetch_all_symbols()
+        fetch_historical_model_pnls()
+    else:
+        if args.symbols:
+            fetch_all_symbols()
+        if args.model_pnls:
+            fetch_historical_model_pnls()

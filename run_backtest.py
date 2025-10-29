@@ -27,7 +27,12 @@ def main():
     """
 
     # --- Parameters ---
-    CSV_FILE = "crypto_prices_3min_ccxt.csv"  # The file saved by the previous script
+    CSV_FILE = (
+        "data/crypto_prices_3min_ccxt.csv"  # The file saved by the previous script
+    )
+    PNL_CSV_FILE = (
+        "data/historical_pnl_pct.csv"  # The file saved by the previous script
+    )
     INITIAL_CAPITAL = 10_000
     TRADING_FEE_RATE = 0.001  # 0.1% (common fee on Binance)
     MAX_BUY_PERC_POWER = 0.5  # Max 10% of available *buying power* on a single 100
@@ -43,8 +48,6 @@ def main():
     PROB_SELL = 0.10  # 7.5% chance to sell
     # --- End Parameters ---
 
-    CURRENT_PNLS = {"deepseek": 11_000, "qwen": 7_000, "claude": 1_500, "grok": 500}
-
     # Check probabilities
     if not np.isclose(PROB_HOLD + PROB_BUY + PROB_SELL, 1.0):
         print(
@@ -55,20 +58,18 @@ def main():
     # 1. Load Data
     try:
         df = pd.read_csv(CSV_FILE, parse_dates=["timestamp"], index_col="timestamp")
+        pnl_df = pd.read_csv(
+            PNL_CSV_FILE, parse_dates=["timestamp"], index_col="timestamp"
+        )
     except FileNotFoundError:
         print(f"Error: File not found: '{CSV_FILE}'")
         print("Please run the 'fetch_crypto_prices_ccxt.py' script first,")
         print("or make sure the CSV_FILE variable matches your filename.")
         return
-    except Exception as e:
-        print(f"Error loading CSV: {e}")
-        return
-
-    if df.empty:
-        print("Error: The CSV file is empty.")
-        return
 
     print(f"Loaded {len(df)} timesteps for {len(df.columns)} coins.")
+
+    current_pnl_pct = pnl_df.groupby("model_id").cum_pnl_pct.last()
 
     # Convert DataFrame to a NumPy array for Numba.
     # Fill NaNs with a 0 to avoid issues in calculation,
@@ -103,8 +104,12 @@ def main():
     # plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=1000)
     # plot_pnl_distribution(all_final_pnls, INITIAL_CAPITAL)
 
-    for model, pnl in CURRENT_PNLS.items():
-        print(f"{model} p = {np.mean(pnl < all_final_pnls):.3f}")
+    for model, pnl_pct in current_pnl_pct.sort_values().items():
+        current_pnl = INITIAL_CAPITAL * pnl_pct * 0.01
+        print("\n", model)
+        print(
+            f"pnl {current_pnl:,.2f} p = {np.mean((current_pnl) < all_final_pnls):.3f}"
+        )
 
 
 if __name__ == "__main__":

@@ -95,3 +95,61 @@ def plot_pnl_distribution(all_final_pnls, initial_capital):
 
     plt.tight_layout()
     plt.show()
+
+
+def plot_forecasts(historical_df, forecast_series_dict):
+    colors = plt.cm.get_cmap("tab10", len(historical_df.columns))
+
+    plt.figure(figsize=(10, 6))
+
+    for i, column in enumerate(historical_df.columns):
+        color = colors(i)
+
+        # 1. Plot historical data
+        plt.plot(
+            historical_df.index,
+            historical_df[column],
+            label=f"{column}",
+            color=color,
+            linewidth=2,
+        )
+
+        # 2. Get the forecast samples TimeSeries
+        forecast_samples = forecast_series_dict[column]
+
+        # 3. Get median (50th percentile) and 90% confidence interval
+        # (5th and 95th percentiles) using the .quantile() method
+        median_forecast = forecast_samples.quantile(0.50)
+        low_forecast = forecast_samples.quantile(0.05)
+        high_forecast = forecast_samples.quantile(0.95)
+
+        # 4. Plot the median forecast
+        # Use .time_index for x-axis and .values().squeeze() for y-axis
+        plt.plot(
+            median_forecast.time_index,
+            median_forecast.values().squeeze(),  # <-- FIX IS HERE
+            # label=f'Forecast {column}',
+            color=color,
+            linestyle="--",
+        )
+
+        # 5. Plot the 90% confidence interval
+        plt.fill_between(
+            low_forecast.time_index,  # Use the index from one of the quantiles
+            low_forecast.values().squeeze(),  # <-- FIX IS HERE
+            high_forecast.values().squeeze(),  # <-- FIX IS HERE
+            color=color,
+            alpha=0.1,
+            # label=f'90% CI {column}'
+        )
+
+    plt.title("Historical Data and Probabilistic Forecasts (Median & 90% CI)")
+    plt.xlabel("Timestamp")
+    plt.ylabel("Value")
+
+    # Place legend outside the plot
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
+
+    plt.grid(True)
+    # plt.tight_layout(rect=[0, 0, 0.85, 1]) # Adjust layout to make room for legend
+    plt.show()
