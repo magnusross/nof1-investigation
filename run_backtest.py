@@ -39,7 +39,7 @@ def main():
     NUM_SIMULATIONS = 10_000  # Number of backtests to run
 
     # --- New Strategy Parameters ---
-    LEVERAGE = 20.0  # e.g., 3x leverage
+    LEVERAGE = 15.0  # e.g., 3x leverage
     AVOID_SELLING_WINNERS = True  # If True, will not sell positions that are in profit
 
     # --- Strategy Probabilities (must sum to 1.0) ---
@@ -101,8 +101,8 @@ def main():
     # 3. Plot Results
     print("Generating plots...")
 
-    # plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=1000)
-    # plot_pnl_distribution(all_final_pnls, INITIAL_CAPITAL)
+    plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=100)
+    plot_pnl_distribution(all_final_pnls, INITIAL_CAPITAL)
 
     for model, pnl_pct in current_pnl_pct.sort_values().items():
         current_pnl = INITIAL_CAPITAL * pnl_pct * 0.01
