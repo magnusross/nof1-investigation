@@ -29,12 +29,13 @@ def analyze_final_pnls(forecast_series_dict):
         ascending=False
     )
     # Multiply by 100 and format for a nice percentage printout
-    print("win prob")
-    print((win_proportions * 100).to_string(float_format="%.2f%%"))
+    print("\n")
+    # print(loss_proportions)
+    print((win_proportions.rename("wins_proportion")).round(2).to_markdown())
 
-    print("loss prob")
-    print((loss_proportions * 100).to_string(float_format="%.2f%%"))
-
+    print("\n")
+    print((loss_proportions).rename("loss_proportion").round(2).to_markdown())
+    print("\n")
     print("any > 50k?")
     print(f"{(final_pnls_df > 400).any(axis=1).mean():.2f}")
 

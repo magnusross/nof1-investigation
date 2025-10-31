@@ -128,33 +128,25 @@ def plot_forecasts(historical_df, forecast_series_dict, save_name=None):
             linewidth=2,
         )
 
-        # 2. Get the forecast samples TimeSeries
         forecast_samples = forecast_series_dict[column]
 
-        # 3. Get median (50th percentile) and 90% confidence interval
-        # (5th and 95th percentiles) using the .quantile() method
         median_forecast = forecast_samples.quantile(0.50)
         low_forecast = forecast_samples.quantile(0.05)
         high_forecast = forecast_samples.quantile(0.95)
 
-        # 4. Plot the median forecast
-        # Use .time_index for x-axis and .values().squeeze() for y-axis
         plt.plot(
             median_forecast.time_index,
-            median_forecast.values().squeeze(),  # <-- FIX IS HERE
-            # label=f'Forecast {column}',
+            median_forecast.values().squeeze(),
             color=color,
             linestyle="--",
         )
 
-        # 5. Plot the 90% confidence interval
         plt.fill_between(
-            low_forecast.time_index,  # Use the index from one of the quantiles
-            low_forecast.values().squeeze(),  # <-- FIX IS HERE
-            high_forecast.values().squeeze(),  # <-- FIX IS HERE
+            low_forecast.time_index,
+            low_forecast.values().squeeze(),
+            high_forecast.values().squeeze(),
             color=color,
             alpha=0.1,
-            # label=f'90% CI {column}'
         )
 
     plt.title(
@@ -206,15 +198,6 @@ def plot_backtest_results(
             label="" if i != 0 else "Sample portfolio",
         )
 
-    average_history = np.mean(all_histories, axis=0)
-    # ax1.plot(
-    #     df_index,
-    #     average_history,
-    #     color=colors(1),
-    #     linewidth=1,
-    #     label="Average Portfolio Value",
-    # )
-
     ax1.axhline(
         initial_capital,
         color="red",
@@ -223,20 +206,11 @@ def plot_backtest_results(
         label=f"Initial Capital (${initial_capital:,.0f})",
     )
 
-    # plt.title(
-    #     f"Random Strategy Performance ({len(all_histories)} Simulations)", fontsize=16
-    # )
     ax1.set_xlabel("Date")
     ax1.set_ylabel("Portfolio Value ($)")
     ax1.legend()
     ax1.grid(True, linestyle=":", alpha=0.6)
-    # plt.tight_layout()
     ax1.tick_params(axis="x", rotation=20)
-
-    # if save_name:
-    #     plt.savefig(save_name)
-    # else:
-    #     plt.show()
 
     ax2.hist(all_final_pnls, bins=50, edgecolor="black", color=colors(0), alpha=0.7)
 
@@ -247,51 +221,17 @@ def plot_backtest_results(
         linewidth=2,
     )
 
-    mean_pnl = np.mean(all_final_pnls)
-    # ax2.axvline(
-    #     mean_pnl,
-    #     color="blue",
-    #     linestyle="-",
-    #     linewidth=2,
-    #     label=f"Mean PnL (${mean_pnl:,.2f})",
-    # )
-
     for i, (m, pnl) in enumerate(current_pnl_dollars.items()):
         ax2.axvline(
             pnl,
             color=model_colors(i),
-            # linestyle="-",
-            # linewidth=2,
             label=m,
         )
 
-    mean_return = (np.mean(all_final_pnls) / initial_capital) * 100
-
-    # ax2.set_title(
-    #     f"Distribution of Final PnL ({len(all_final_pnls)} Simulations)", fontsize=16
-    # )
     ax2.set_xlabel("Final PnL ($)")
     ax2.set_ylabel("Frequency")
     ax2.legend()
     ax2.grid(True, linestyle=":", alpha=0.6)
-
-    # stats_text = (
-    #     f"Simulations: {len(all_final_pnls)}\n"
-    #     f"Mean PnL: ${np.mean(all_final_pnls):,.2f}\n"
-    #     f"Mean Return: {mean_return:.2f}%\n"
-    #     f"Median PnL: ${np.median(all_final_pnls):,.2f}\n"
-    #     f"Std. Dev: ${np.std(all_final_pnls):,.2f}\n"
-    #     f"Win Rate: {np.mean(all_final_pnls > 0) * 100:.2f}%"
-    # )
-    # ax2.text(
-    #     0.05,
-    #     0.95,
-    #     stats_text,
-    #     transform=plt.gca().transAxes,
-    #     fontsize=10,
-    #     verticalalignment="top",
-    #     bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
-    # )
 
     fig.tight_layout()
     if save_name:
