@@ -18,16 +18,22 @@ def analyze_final_pnls(forecast_series_dict):
 
     # 3. Find the winning model (column name with max value) for each row (sample)
     winners_series = final_pnls_df.idxmax(axis=1)
+    losers_series = final_pnls_df.idxmin(axis=1)
 
     # 4. Calculate the proportion of wins for each model
     # normalize=True automatically divides counts by the total (500)
-    win_proportions = winners_series.value_counts(normalize=True)
-
-    # Sort for a clean ranking
-    win_proportions = win_proportions.sort_values(ascending=False)
+    win_proportions = winners_series.value_counts(normalize=True).sort_values(
+        ascending=False
+    )
+    loss_proportions = losers_series.value_counts(normalize=True).sort_values(
+        ascending=False
+    )
     # Multiply by 100 and format for a nice percentage printout
     print("win prob")
     print((win_proportions * 100).to_string(float_format="%.2f%%"))
+
+    print("loss prob")
+    print((loss_proportions * 100).to_string(float_format="%.2f%%"))
 
     print("any > 50k?")
     print(f"{(final_pnls_df > 400).any(axis=1).mean():.2f}")
@@ -58,7 +64,7 @@ def main():
 
     last_timestamp = pivot_pnl_pct.index[-1]
     forecast_start_time = last_timestamp + pd.DateOffset(hours=1)
-    forecast_end_time = pd.to_datetime("2025-11-01 23:00:00")
+    forecast_end_time = pd.to_datetime("2025-11-03 21:00:00")
 
     # Calculate the number of steps (hours) to forecast
     n_steps = len(
@@ -88,7 +94,11 @@ def main():
         # Convert this column's forecast samples to a DataFrame and store
         all_forecast_samples_dfs[llm_name] = forecast_samples
 
-    plot_forecasts(hourly_pnl_pct, all_forecast_samples_dfs)
+    plot_forecasts(
+        hourly_pnl_pct,
+        all_forecast_samples_dfs,
+        save_name=f"data/forecasts_last_point{last_timestamp}.pdf",
+    )
     analyze_final_pnls(all_forecast_samples_dfs)
 
 

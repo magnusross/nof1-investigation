@@ -88,11 +88,9 @@ def fetch_all_symbols():
     symbols = ["BTC", "BNB", "ETH", "SOL", "DOGE", "XRP"]
     quote_currency = "USDT"
     timeframe = "3m"
-    start_date_str = "2024-10-17 00:00:00"
-    end_date_str = "2024-10-27 00:00:00"
-    # --- End Parameters ---
+    start_date_str = "2025-10-18 00:00:00"
+    end_date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Initialize the exchange (Binance)
     # 'enableRateLimit': True is important to avoid API bans
     exchange = ccxt.binance({"enableRateLimit": True})
 

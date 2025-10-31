@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 import time
 from src.simulation import run_all_simulations_parallel
-from src.plotting import plot_histories, plot_pnl_distribution
+from src.plotting import plot_backtest_results, plot_histories, plot_pnl_distribution
 
 
 def main():
@@ -70,6 +70,7 @@ def main():
     print(f"Loaded {len(df)} timesteps for {len(df.columns)} coins.")
 
     current_pnl_pct = pnl_df.groupby("model_id").cum_pnl_pct.last()
+    last_timestamp = pnl_df.index[-1]
 
     # Convert DataFrame to a NumPy array for Numba.
     # Fill NaNs with a 0 to avoid issues in calculation,
@@ -101,15 +102,41 @@ def main():
     # 3. Plot Results
     print("Generating plots...")
 
-    plot_histories(df.index, all_histories, INITIAL_CAPITAL, num_to_plot=100)
-    plot_pnl_distribution(all_final_pnls, INITIAL_CAPITAL)
+    current_pnl_dollars = {
+        m: INITIAL_CAPITAL * pnl_pct * 0.01
+        for m, pnl_pct in current_pnl_pct.sort_values().items()
+    }
 
-    for model, pnl_pct in current_pnl_pct.sort_values().items():
-        current_pnl = INITIAL_CAPITAL * pnl_pct * 0.01
-        print("\n", model)
-        print(
-            f"pnl {current_pnl:,.2f} p = {np.mean((current_pnl) < all_final_pnls):.3f}"
-        )
+    plot_backtest_results(
+        df.index,
+        all_histories,
+        all_final_pnls,
+        INITIAL_CAPITAL,
+        current_pnl_dollars,
+        save_name=f"data/backtest_{last_timestamp}.pdf",
+    )
+
+    # plot_histories(
+    #     df.index,
+    #     all_histories,
+    #     INITIAL_CAPITAL,
+    #     num_to_plot=100,
+    #     save_name=f"data/backtest_histories_{last_timestamp}.pdf",
+    # )
+    # plot_pnl_distribution(
+    #     all_final_pnls,
+    #     INITIAL_CAPITAL,
+    #     save_name=f"data/backtest_disribution_{last_timestamp}.pdf",
+    # )
+
+    pnl_p_vals = {
+        m: np.mean((pnl) < all_final_pnls) for m, pnl in current_pnl_dollars.items()
+    }
+
+    # for model, pnl in current_pnl_dollars.items():
+    #     print("\n", model)
+    #     print(f"pnl {pnl:,.2f} p = {np.mean((pnl) < all_final_pnls):.3f}")
+    print(pd.Series(pnl_p_vals).round(2).rename("p_value").to_markdown())
 
 
 if __name__ == "__main__":
