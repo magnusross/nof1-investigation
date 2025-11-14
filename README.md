@@ -1,3 +1,24 @@
+# NoF1 Investigation
+
+## Quick Start
+
+### 1. Fetch Data
+```bash
+python fetch_data.py
+```
+Downloads historical cryptocurrency prices (BTC, ETH, SOL, etc.) and model P&L data.
+
+**Options:**
+- `--symbols`: Fetch only crypto price data
+- `--model-pnls`: Fetch only model P&L data
+- No flags: Fetch both (default)
+
+### 2. Run Backtest
+```bash
+python run_backtest.py
+```
+Runs 10,000 parallel Monte Carlo simulations of a random trading strategy on historical crypto data. Uses Numba for fast execution.
+
 The strategy is as follows:
 - You start with a fixed amount of capital, say 10,000
 - at each timestep, for each coin you can either buy, sell, or hold
@@ -5,22 +26,24 @@ The strategy is as follows:
 - If you buy, buy a random amount, as a percentage of cash in the bank
 - If you hold, you do nothing for that coin
 - At the end of the dataset, sell everything
-- Set the fees for each trade to be a reasonable standard rate, typically of the market 
-
-You need to focus on making the simulation fast and efficient. You should run multiple random simulations and plot the results. The plot should be of the mark to market value of the portfolio over time, including fees. I would also like a plot of the disribution of the final PnL. Make it easy to control the parameters of the strategy.
+- Set the fees for each trade to be a reasonable standard rate, typically of the market
 
 
-TODO:
-- [x] Incorporate margin call. 
-- [ ] 
+**Parameters** (edit in script):
+- `INITIAL_CAPITAL`: Starting capital (default: $10,000)
+- `NUM_SIMULATIONS`: Number of simulations (default: 10,000)
+- `TRADING_FEE_RATE`: Trading fees (default: 0.1%)
+- `LEVERAGE`: Trading leverage (default: 15x)
+- `PROB_HOLD/BUY/SELL`: Trading probabilities
 
+### 3. Compute Win Probabilities
+```bash
+python compute_model_win_probs.py
+```
+Uses exponential smoothing to forecast model performance and calculates win probabilities. Generates forecast plots and analysis.
 
-INITIAL_CAPITAL = 10_000
-TRADING_FEE_RATE = 0.001  # 0.1% (common fee on Binance)
-MAX_BUY_PERC_CASH = 0.2  # Max 10% of available cash on a single buy
-NUM_SIMULATIONS = 10_000  # Number of backtests to run
+**Outputs:**
+- Win/loss proportions for each model
+- Forecast plots with confidence intervals
+- Probability analysis of reaching profit thresholds
 
-# --- Strategy Probabilities (must sum to 1.0) ---
-PROB_HOLD = 0.90  # 85% chance to hold
-PROB_BUY = 0.09  # 7.5% chance to buy
-PROB_SELL = 0.01  # 7.5% chance to sell

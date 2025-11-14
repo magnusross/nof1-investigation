@@ -5,54 +5,9 @@ Plotting module for visualizing backtest results.
 import matplotlib.pyplot as plt
 import numpy as np
 
+from darts.timeseries import TimeSeries
+
 plt.rcParams.update({"font.family": "Fira Code"})
-
-
-def plot_histories(
-    df_index, all_histories, initial_capital, num_to_plot=100, save_name=None
-):
-    """
-    Plots the portfolio value over time for all simulations.
-    """
-    plt.figure(figsize=(7, 4))
-    colors = plt.cm.get_cmap("tab20", 3)
-
-    plot_subset = all_histories[:: max(1, len(all_histories) // num_to_plot)]
-
-    for history in plot_subset:
-        plt.plot(df_index, history, color=colors(0), alpha=0.1)
-
-    average_history = np.mean(all_histories, axis=0)
-    plt.plot(
-        df_index,
-        average_history,
-        color=colors(1),
-        linewidth=2,
-        label="Average Portfolio Value",
-    )
-
-    plt.axhline(
-        initial_capital,
-        color="black",
-        # color=colors(2),
-        linestyle="--",
-        label=f"Initial Capital (${initial_capital:,.0f})",
-    )
-
-    # plt.title(
-    #     f"Random Strategy Performance ({len(all_histories)} Simulations)", fontsize=16
-    # )
-    plt.xlabel("Date")
-    plt.ylabel("Portfolio Value ($)")
-    plt.legend()
-    plt.grid(True, linestyle=":", alpha=0.6)
-    plt.tight_layout()
-    plt.tick_params(axis="x", rotation=20)
-
-    if save_name:
-        plt.savefig(save_name)
-    else:
-        plt.show()
 
 
 def plot_pnl_distribution(all_final_pnls, initial_capital, save_name=None):
@@ -150,21 +105,19 @@ def plot_forecasts(historical_df, forecast_series_dict, save_name=None):
         )
 
     plt.title(
-        "Forecasted PnLs (Median & 90% CI)",
+        "PnLs",
         fontname="Fira Code",
     )
-    plt.xlabel("Timestamp", fontname="Fira Code")
-    plt.ylabel("Value (%)", fontname="Fira Code")
+    plt.xlabel("Timestamp")
+    plt.ylabel("Value (%)")
     plt.xticks()
-    plt.tick_params(axis="x", rotation=45)
+    plt.tick_params(axis="x", rotation=20)
 
-    # Place legend outside the plot
-    # plt.legend(loc="upper left", bbox_to_anchor=(1, 1), fontname="Fira Code")
     leg = plt.legend(
         framealpha=0,
     )
     for text in leg.get_texts():
-        plt.setp(text, color="black", fontname="Fira Code")
+        plt.setp(text, color="black")
     plt.grid(True)
 
     if save_name:
@@ -209,7 +162,7 @@ def plot_backtest_results(
     ax1.set_xlabel("Date")
     ax1.set_ylabel("Portfolio Value ($)")
     ax1.legend()
-    ax1.grid(True, linestyle=":", alpha=0.6)
+    ax1.grid(True, alpha=0.7)
     ax1.tick_params(axis="x", rotation=20)
 
     ax2.hist(all_final_pnls, bins=50, edgecolor="black", color=colors(0), alpha=0.7)
@@ -231,10 +184,13 @@ def plot_backtest_results(
     ax2.set_xlabel("Final PnL ($)")
     ax2.set_ylabel("Frequency")
     ax2.legend()
-    ax2.grid(True, linestyle=":", alpha=0.6)
+    # ax2.grid(True, alpha=0.7)
+
+    for spine in ax2.spines.values():
+        spine.set_visible(True)
 
     fig.tight_layout()
     if save_name:
-        plt.savefig(save_name)
+        plt.savefig(save_name, dpi=800)
     else:
         plt.show()

@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-
-"""
-Fetches historical cryptocurrency prices from Binance using the ccxt library
-at 3-minute intervals and compiles them into a single pandas DataFrame.
-
-This script requires the following libraries:
-- pandas
-- ccxt
-
-You can install them using pip:
-pip install pandas ccxt
-"""
-
 import os
 import ccxt
 import pandas as pd
@@ -32,7 +18,6 @@ def fetch_all_ohlcv(exchange, pair, timeframe, since, end_timestamp):
     """
     all_klines = []
 
-    # ccxt-specific: get timeframe duration in milliseconds
     timeframe_ms = exchange.parse_timeframe(timeframe) * 1000
 
     current_since = since
@@ -91,7 +76,6 @@ def fetch_all_symbols():
     start_date_str = "2025-10-18 00:00:00"
     end_date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # 'enableRateLimit': True is important to avoid API bans
     exchange = ccxt.binance({"enableRateLimit": True})
 
     # Convert human-readable dates to millisecond timestamps
@@ -152,8 +136,8 @@ def fetch_all_symbols():
 def fetch_historical_model_pnls_json():
     url = "https://nof1.ai/api/account-totals"
     try:
-        req = Request(url, headers={"User-Agent": "python-urllib/3"})
-        with urlopen(req, timeout=15) as resp:
+        req = Request(url)
+        with urlopen(req, timeout=10) as resp:
             raw = resp.read()
             try:
                 charset = resp.headers.get_content_charset() or "utf-8"
@@ -169,11 +153,14 @@ def fetch_historical_model_pnls_json():
     except Exception as e:
         print(f"Failed to fetch/parse JSON: {e}")
 
-    return None
-
 
 def fetch_historical_model_pnls():
-    data = fetch_historical_model_pnls_json()
+    try:
+        with open("data/account_totals.jsonl", "r") as f:
+            data = json.loads(f.read())
+    except FileNotFoundError:
+        print("fnf")
+        data = fetch_historical_model_pnls_json()
 
     pnl_df = data.get("accountTotals", [])
     pnl_df = pd.DataFrame(pnl_df)
@@ -205,9 +192,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Behavior: if neither flag provided, run both. If one or both flags provided, run the requested actions.
     if not args.symbols and not args.model_pnls:
-        # Default behavior: preserve previous behavior and run both
         fetch_all_symbols()
         fetch_historical_model_pnls()
     else:
