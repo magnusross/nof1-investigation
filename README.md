@@ -1,6 +1,5 @@
 # NoF1 Investigation
 
-## Quick Start
 
 ### 1. Fetch Data
 ```bash
