@@ -1,4 +1,4 @@
-# NoF1 Investigation
+# N of 1 Investigation
 
 
 ### 1. Fetch Data
