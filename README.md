@@ -1,5 +1,6 @@
 # N of 1 Investigation
 
+This is the accompanying analysis code for [this blog post](https://magnusross.github.io/posts/nof1-analysis/) about the [Alpha Arena benchmark](https://nof1.ai).
 
 ### 1. Fetch Data
 ```bash
